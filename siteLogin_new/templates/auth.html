@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+<head>
+    <style type="text/css">
+        .h1{
+        color: #ffffff;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <div class="page-header">
+        <h1><label>注册</label></h1>
+        <h2>{{ return_code }}</h2>
+    </div>
+        <div class="login_page">
+            <form action="" method="post">
+            {% csrf_token %}
+            <div class="input_page">
+                <br>
+                {{ "用户名：" }}  <input type="text" name="username" align="right" size="26"> <br>
+                {{ "密码：" }} &nbsp &nbsp <input type="text" name="password" align="right" size="26"><br>
+            </div>
+                <div id="choice">
+                <label>权限:</label>
+                <select>
+                    <option>管理员</option>
+                    <option>普通用户</option>
+                </select>
+                <br>
+                {% if return_code == 0 %}
+                    <h3>  </h3>
+                {% endif %}
+                {% if return_code == 5 %}
+                    <h3>此用户已存在</h3>
+                {% endif %}
+                {% if return_code == 2 %}
+                    <h3>用户名不能为空</h3>
+                {% endif %}
+                 {% if return_code == 3 %}
+                    <h3>密码不能为空</h3>
+                {% endif %}
+                 {% if return_code == 6 %}
+                    <h3>用户添加成功</h3>
+                {% endif %}
+
+                    <input type="submit" name="sub" value="确定">
+                    <input type="submit" name="sub" value="取消">
+                </div>
+            </form>
+        </div>
+</body>
+</html>
+

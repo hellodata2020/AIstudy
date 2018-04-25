@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SCOTT OMS运维管理系统</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="/static/vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- DataTables CSS -->
+    <link href="/static/vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
+
+    <!-- DataTables Responsive CSS -->
+    <link href="/static/vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/static/dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="/static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+{#    555#}
+<script type="text/javascript">
+        function inittable() {
+            $("#dataTables-example").dataTable().fnDestroy();
+            $("#dataTables-example").dataTable({
+                paging: true,//分页
+                searching: true,//搜索
+                ordering: false
+            })
+        }
+        function timerefreash() {
+            while(true){
+               ret()
+            }
+        }
+        function chkall(){
+            var all = document.getElementById("checkAll");
+            var mychk = document.getElementsByName("checkone");
+{#            alert("mychk长度=="+mychk.length);#}
+            if(all.checked==true){
+                if(mychk.length){
+                    for(var i=0;i<mychk.length;i++){
+                        mychk[i].checked = true;
+{#                        alert(mychk[i].parentNode.parentNode.children[1].innerHTML)#}
+                    }
+
+                }
+                mychk.chcked=true;
+            }else{
+                if(mychk.length){
+                    for(var i=0;i<mychk.length;i++){
+                        mychk[i].checked = false;
+                    }
+
+                }
+            }
+        }
+        function delMC(){
+            var checkitems = document.getElementsByName("checkone")
+            var chk=[];
+            if(checkitems.length){
+                for(var i=0;i<checkitems.length;i++)
+                {
+                    var tmphtml = checkitems[i].parentNode.parentNode.children[1]
+                    if(checkitems[i].checked==true){
+                        if (tmphtml == undefined){
+                            chk.push(checkitems[i].parentNode.parentNode.parentNode.children[1].innerHTML)
+                        }
+                        else{
+                            chk.push(checkitems[i].parentNode.parentNode.children[1].innerHTML)
+                        }
+                    }
+                }
+            }
+            var acs = JSON.stringify({ "method":'3' , "ipaddrs":chk })
+            $.ajax({
+                url:"/main/tables.html",
+                type:"POST",
+                data:acs,
+                dataType: "json",
+                error:function(data){
+                    alert("删除失败2")
+                },
+                success:function(data){
+                    result = data.code;
+                    if(result==100){
+                        alert("删除成功")
+                        ret()
+                        $("#myModal").modal('hide');
+                    }
+                    else
+                        {alert("删除失败1")}
+                }
+            });
+            ret()
+        }
+        function pageinit(){
+            var ipaddr = $("#INipaddr").val();
+            var username = $("#INusername").val();
+            var pwd = $("#INpassword").val();
+            var info = $("#INinfo").val();
+            var result
+            $.ajax({
+                url:"/main/tables.html",
+                type:"POST",
+                data:JSON.stringify({method:'1',ipaddr:ipaddr,username:username,pwd:pwd,info:info}),
+                dataType:"json",
+                error:function(data){
+                    alert("添加失败")
+                },
+                success:function(data){
+                    result = data.code;
+                    if(result==100){
+                        alert("添加成功")
+                        ret()
+                        $("#myModal").modal('hide');
+                    }
+                    else
+                        {alert("添加失败")}
+                }
+            });
+        }
+         function packagingdatatabledata(data){
+            var checkHtml='<div id="firstr"><td><input type="checkbox" id="checkone" name="checkone"></td></div>'
+            var editHtml='<button href="#modal-container-648308" rel="external nofollow" data-toggle="modal" class="btn btn-xs btn-success" onclick="test_env_modify(this,1)"><span style="font-size:4px;">启动</span></button>\n' +
+                '                                        <button href="#modal-container-648308" rel="external nofollow" data-toggle="modal" class="btn btn-xs btn-info" onclick="test_env_modify(this,2)"><span style="font-size:4px;">停止</span></button>\n'
+             var a=[]; //全部行数据的list
+             //data需要为json数据
+            for(var key in data){
+            var tempObj=[];  //一行数据的list
+               tempObj.push(checkHtml)
+               tempObj.push(key);
+               tempObj.push(data[key].username);
+               tempObj.push(data[key].mccpu);
+               tempObj.push(data[key].mcmem);
+               tempObj.push(data[key].mcalldisk);
+{#             tempObj.push(data[key].mcnetmask);#}
+               tempObj.push(editHtml);
+               a.push(tempObj);
+            }
+            return a;
+         }
+        function test_env_modify(object,controlID){
+             alert(object.parentNode.parentNode.children[1].innerHTML + ":" + controlID) //获取html元素母元素的内容
+        }
+        function ret(){
+            var cdata=""
+            $.ajax({
+                url:"/main/tables.html",
+                type:"POST",
+                data:JSON.stringify({method:'2'}),
+                dataType: "json",
+                error:function(data){
+                    alert("获取失败")
+                },
+                success:function(data){
+                    $('#dataTables-example').dataTable().fnClearTable();
+                    $('#dataTables-example').dataTable().fnAddData(packagingdatatabledata(data),true);
+{#                //下面这个方法，只支持静态表格显示，不支持动态刷新#}
+{#                for (var key in data)#}
+{#                {#}
+{#                    cdata = cdata + "<tr class=\"odd gradeX\">"#}
+{#                    cdata = cdata + "<td>" + key + "</td>"#}
+{#                    cdata = cdata + "<td>" + data[key].username + "</td>"#}
+{#                    cdata = cdata + "<td>" + data[key].mccpu + "</td>"#}
+{#                    cdata = cdata + "<td>" + data[key].mcmem + "</td>"#}
+{#                    cdata = cdata + "<td>" + data[key].mcnetmask + "</td>"#}
+{#                    cdata = cdata + "</tr>"#}
+{#                }#}
+{#                $('#dataTables-example').dataTable().fnClearTable(); //清空表格#}
+{#                document.getElementById("refrestable").innerHTML=cdata#}
+
+{#                    rdata = JSON.stringify(data)#}
+{#                    if(result==200){#}
+{#                        alert("添加成功")#}
+{#                        $("#myModal").modal('hide');#}
+{#                    }#}
+{#                    else#}
+{#                        {alert("添加失败2")}#}
+                }
+            });
+        }
+
+    </script>
+    <style type="text/css">
+        #firstr {
+            text-align:center;
+        }
+    </style>
+</head>
+
+{#<body onload='init()'>#}
+<body>
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="width: 35%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">添加节点服务器</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row" style="margin-left:20px;margin-top: 15px">
+                            <label for="INipaddr" class="col-sm-3 control-label" style="margin-top: 5px">服务器IP：</label>
+                            <div class="col-sm-6" style="margin-left: -30px">
+                              <input type="text" class="form-control" id="INipaddr" placeholder="0.0.0.0">
+                            </div>
+                        </div>
+                        <div class="row" style="margin-left:20px;margin-top: 15px">
+                            <label for="INusername" class="col-sm-3 control-label" style="margin-top: 5px">用户名：</label>
+                            <div class="col-sm-6" style="margin-left: -30px">
+                              <input type="text" class="form-control" id="INusername" placeholder="用户名">
+                            </div>
+                        </div>
+                        <div class="row" style="margin-left:20px;margin-top: 15px">
+                            <label for="INpassword" class="col-sm-3 control-label" style="margin-top: 5px">密码：</label>
+                            <div class="col-sm-6" style="margin-left: -30px">
+                              <input type="password" class="form-control" id="INpassword" placeholder="密码">
+                            </div>
+                        </div>
+                        <div class="row" style="margin-left:20px;margin-top: 15px">
+                            <label for="INinfo" class="col-sm-3 control-label" style="margin-top: 5px">备注：</label>
+                            <div class="col-sm-6" style="margin-left: -30px">
+                              <input type="text" class="form-control" id="INinfo" placeholder="备注">
+                            </div>
+                        </div>
+                    </div>
+{#                    <div class="form-group">#}
+{#                        <span>用户名:</span><input class="form-co  ntrol input-sm" style="width:40px">#}
+{#                    </div>#}
+{#                    <div class="form-group">#}
+{#                        <span>密码:</span><input class="form-control input-sm" style="width:50px">#}
+{#                    </div>#}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="pageinit()">验证</button>
+                    <button type="button" class="btn btn-primary" onclick="pageinit()">提交</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+{#    <button class="btn btn-default" type="button" onclick="pageinit()">HELLO</button>#}
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">服务器监控</a>
+            </div>
+            <!-- /.navbar-header -->
+
+            <ul class="nav navbar-top-links navbar-right">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-envelope fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-messages">
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <strong>John Smith</strong>
+                                    <span class="pull-right text-muted">
+                                        <em>Yesterday</em>
+                                    </span>
+                                </div>
+                                <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eleifend...</div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <strong>John Smith</strong>
+                                    <span class="pull-right text-muted">
+                                        <em>Yesterday</em>
+                                    </span>
+                                </div>
+                                <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eleifend...</div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <strong>John Smith</strong>
+                                    <span class="pull-right text-muted">
+                                        <em>Yesterday</em>
+                                    </span>
+                                </div>
+                                <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eleifend...</div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a class="text-center" href="#">
+                                <strong>Read All Messages</strong>
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-messages -->
+                </li>
+                <!-- /.dropdown -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-tasks fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-tasks">
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 1</strong>
+                                        <span class="pull-right text-muted">40% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
+                                            <span class="sr-only">40% Complete (success)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 2</strong>
+                                        <span class="pull-right text-muted">20% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
+                                            <span class="sr-only">20% Complete</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 3</strong>
+                                        <span class="pull-right text-muted">60% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%">
+                                            <span class="sr-only">60% Complete (warning)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 4</strong>
+                                        <span class="pull-right text-muted">80% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">
+                                            <span class="sr-only">80% Complete (danger)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a class="text-center" href="#">
+                                <strong>See All Tasks</strong>
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-tasks -->
+                </li>
+                <!-- /.dropdown -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-bell fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-alerts">
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-comment fa-fw"></i> New Comment
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-twitter fa-fw"></i> 3 New Followers
+                                    <span class="pull-right text-muted small">12 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-envelope fa-fw"></i> Message Sent
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-tasks fa-fw"></i> New Task
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-upload fa-fw"></i> Server Rebooted
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a class="text-center" href="#">
+                                <strong>See All Alerts</strong>
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-alerts -->
+                </li>
+                <!-- /.dropdown -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        </li>
+                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-user -->
+                </li>
+                <!-- /.dropdown -->
+            </ul>
+            <!-- /.navbar-top-links -->
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        <li class="sidebar-search">
+                            <div class="input-group custom-search-form">
+                                <input type="text" class="form-control" placeholder="Search...">
+                                <span class="input-group-btn">
+                                <button class="btn btn-default" type="button">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </span>
+                            </div>
+                            <!-- /input-group -->
+                        </li>
+                        <li>
+                            <a href="index.html"><i class="fa fa-th fa-fw"></i> 主页</a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-desktop fa-fw"></i> 服务器监控_图表<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="flot.html">系统监控</a>
+                                </li>
+                                <li>
+                                    <a href="morris.html">网络监控</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-cloud fa-fw"></i> 业务监控_列表<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="flot.html">基础业务监控</a>
+                                </li>
+                                <li>
+                                    <a href="morris.html">故障监控</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-chain fa-fw"></i> 开发运维一体化<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="flot.html">自动化打包</a>
+                                </li>
+                                <li>
+                                    <a href="morris.html">自动化部署(集群部署)</a>
+                                </li>
+                                <li>
+                                    <a href="morris.html">备份还原</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-warning fa-fw"></i> 告警系统_UI 资源<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="panels-wells.html">服务器参数告警_板块</a>
+                                </li>
+                                <li>
+                                    <a href="buttons.html">业务监控告警_按钮</a>
+                                </li>
+                                <li>
+                                    <a href="notifications.html">监控配置_通知</a>
+                                </li>
+                                <li>
+                                    <a href="typography.html">印刷</a>
+                                </li>
+                                <li>
+                                    <a href="icons.html"> 图标</a>
+                                </li>
+                                <li>
+                                    <a href="grid.html">栅格</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-file-text-o fa-fw"></i> 日志监控<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="#">业务日志</a>
+                                </li>
+                                <li>
+                                    <a href="#">系统日志</a>
+                                </li>
+                                <li>
+                                    <a href="#">Third Level <span class="fa arrow"></span></a>
+                                    <ul class="nav nav-third-level">
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                    </ul>
+                                    <!-- /.nav-third-level -->
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-cogs fa-fw"></i> Sample Pages<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="blank.html">Blank Page</a>
+                                </li>
+                                <li>
+                                    <a href="login.html">Login Page</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+        </nav>
+
+        <div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12" style="margin-top:20px">
+                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal" style="width:90px;">新增节点</button>
+                        <button type="button" class="btn btn-success" onclick="ret()" style="width:90px;margin-left:13px">Agent部署</button>
+                        <button type="button" class="btn btn-warning" onclick="delMC()" style="margin-left:13px">删除</button>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+{#            <p>666</p>#}
+            <div class="row">
+                <div class="col-lg-12" style="margin-top:20px">
+{#                        <div class="panel-heading">#}
+{#                            DataTables Advanced Tables#}
+{#                        </div>#}
+                        <!-- /.panel-heading -->
+{#                        <div class="panel-body" id="maintable">#}
+                            <table width="100%" class="table table-responsive" id="dataTables-example">
+                                <thead>
+                                    <tr>
+{#                                        style="margin-left:20px;"#}
+                                        <th style="text-align:center;"><input type="checkbox" id="checkAll" name="checkAll" onclick="chkall()"></th>
+                                        <th>服务器IP地址</th>
+                                        <th>管理用户</th>
+                                        <th>CPU占用率</th>
+                                        <th>内存占用率</th>
+                                        <th>磁盘占用率</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="tablebody" id="refrestable">
+                                {%  for key,mcinfo in allmclist.items %}
+                                    <tr class="odd gradeX">
+                                        <td id="firstr"><input type="checkbox" id="checkone" name="checkone"></td>
+                                        <td>{{ key }}</td>
+                                        <td>{{ mcinfo.username }}</td>
+                                        <td>{{ mcinfo.mccpu }}</td>
+                                        <td class="center">{{ mcinfo.mcmem }}</td>
+                                        <td class="center">{{ mcinfo.mcalldisk }}</td>
+                                    <td class="center">
+                                        <button href="#modal-container-648308" rel="external nofollow" data-toggle="modal" class="btn btn-xs btn-success" onclick="test_env_modify(this,1)"><span style="font-size:4px;">启动</span></button>
+                                        <button href="#modal-container-648308" rel="external nofollow" data-toggle="modal" class="btn btn-xs btn-info" onclick="test_env_modify(this,2)"><span style="font-size:4px;">停止</span></button>
+                                    </td>
+                                {%  endfor %}
+                                </tbody>
+                            </table>
+                            <!-- /.table-responsive -->
+                        <!-- /.panel-body -->
+{#                    </div>#}
+                    <!-- /.panel -->
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="/static/vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- DataTables JavaScript -->
+    <script src="/static/vendor/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="/static/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
+    <script src="/static/vendor/datatables-responsive/dataTables.responsive.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/static/dist/js/sb-admin-2.js"></script>
+
+    <!-- Page-Level Demo Scripts - Tables - Use for reference -->
+    <script>
+    $(document).ready(function() {
+        setInterval("ret()","120000");
+        $('#dataTables-example').DataTable({
+            responsive: true,
+{#            ordering: false,#}
+            "aoColumnDefs": [{ "bSortable": false, "aTargets": [0]}],
+            "aaSorting": [[1, "desc"]]
+        });
+    });
+    </script>
+{#    <script>inittable()</script>#}
+
+</body>
+
+</html>
